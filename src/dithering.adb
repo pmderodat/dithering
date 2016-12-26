@@ -2,7 +2,6 @@ with Ada.Command_Line; use Ada.Command_Line;
 with Ada.Directories;
 with Ada.Text_IO;      use Ada.Text_IO;
 
-with HAL.Bitmap;        use HAL.Bitmap;
 with HAL.Filesystem;    use HAL.Filesystem;
 with Native.Filesystem; use Native.Filesystem;
 
@@ -61,7 +60,7 @@ procedure Dithering is
    ------------------
 
    procedure Process_File (Handle : Any_File_Handle) is
-      BM : Bitmap_Buffer := BMP.Load (Handle.all);
+      BM : BMP.Bitmap_Allocation := BMP.Load (Handle.all);
 
       pragma Unreferenced (BM);
    begin
