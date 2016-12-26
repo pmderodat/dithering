@@ -84,6 +84,7 @@ package BMP is
    end record;
 
    Read_Error   : exception;
+   Write_Error  : exception;
    Invalid_Data : exception;
 
    type Byte_Array_Access is private;
