@@ -2,10 +2,12 @@ with Ada.Command_Line; use Ada.Command_Line;
 with Ada.Directories;
 with Ada.Text_IO;      use Ada.Text_IO;
 
+with HAL.Bitmap;
 with HAL.Filesystem;    use HAL.Filesystem;
 with Native.Filesystem; use Native.Filesystem;
 
 with BMP;
+with Dither;
 with Resource_Holders;
 
 procedure Dithering is
@@ -73,10 +75,16 @@ procedure Dithering is
    ------------------
 
    procedure Process_File (Read_Handle, Write_Handle : Any_File_Handle) is
-      BM : BMP.Bitmap_Allocation := BMP.Load (Read_Handle.all);
+      Input  : BMP.Bitmap_Allocation := BMP.Load (Read_Handle.all);
+      Output : BMP.Bitmap_Allocation :=
+        BMP.Create
+          (HAL.Bitmap.ARGB_8888, Input.Bitmap.Width, Input.Bitmap.Height);
    begin
-      BMP.Save (Write_Handle.all, BM.Bitmap);
-      BMP.Destroy (BM);
+      Dither (Input.Bitmap, Output.Bitmap);
+      BMP.Destroy (Input);
+
+      BMP.Save (Write_Handle.all, Output.Bitmap);
+      BMP.Destroy (Output);
    end Process_File;
 
    -----------
