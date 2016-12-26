@@ -50,6 +50,30 @@ package body BMP is
    --  Given the width of an image, determine how large a padded row will be,
    --  in bytes.
 
+   ------------
+   -- Create --
+   ------------
+
+   function Create
+     (Mode          : Bitmap_Color_Mode;
+      Width, Height : Natural) return Bitmap_Allocation
+   is
+      Result : Bitmap_Allocation;
+
+      Pixel_Count : constant Natural := Width * Height;
+      Byte_Count  : constant Natural :=
+        Bits_Per_Pixel (Mode) * Pixel_Count;
+   begin
+      Result.Buffer := new Byte_Array (1 .. Byte_Count);
+
+      Result.Bitmap.Addr := Result.Buffer.all'Address;
+      Result.Bitmap.Width := Width;
+      Result.Bitmap.Height := Height;
+      Result.Bitmap.Color_Mode := Mode;
+
+      return Result;
+   end Create;
+
    --------------
    -- Load_BMP --
    --------------
@@ -103,19 +127,8 @@ package body BMP is
 
       --  Now allocate the buffer to hold image data
 
-      declare
-         Color_Mode  : constant Bitmap_Color_Mode := ARGB_8888;
-         Pixel_Count : constant Natural :=
-           Natural (DIB_Hdr.Width * DIB_Hdr.Height);
-         Byte_Count  : constant Natural :=
-           Bits_Per_Pixel (Color_Mode) * Pixel_Count;
-      begin
-         Result.Value.Buffer := new Byte_Array (1 .. Byte_Count);
-         BM.Addr := Result.Value.Buffer.all'Address;
-         BM.Width := Natural (DIB_Hdr.Width);
-         BM.Height := Natural (DIB_Hdr.Height);
-         BM.Color_Mode := Color_Mode;
-      end;
+      Result.Value := Create
+        (ARGB_8888, Natural (DIB_Hdr.Width), Natural (DIB_Hdr.Height));
 
       --  ... and finally decode data from the file!
 

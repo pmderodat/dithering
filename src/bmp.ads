@@ -98,6 +98,12 @@ package BMP is
       --  The memory that is dynamically allocated
    end record;
 
+   function Create
+     (Mode          : Bitmap_Color_Mode;
+      Width, Height : Natural) return Bitmap_Allocation;
+   --  Allocate resources to hold a bitmap for the given mode, width and
+   --  height. When done with the result, one must call Destroy on it.
+
    procedure Destroy (BM_Alloc : in out Bitmap_Allocation);
    --  Free the allocated resources in BM_Alloc
 
