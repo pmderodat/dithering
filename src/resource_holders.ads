@@ -15,7 +15,7 @@ package Resource_Holders is
 
    type Holder_Type is limited new Ada.Finalization.Limited_Controlled
    with record
-      Value_Present : Boolean;
+      Value_Present : Boolean := False;
       --  Whether there is an actual Value to manage in this holder
 
       Value : T;
@@ -25,6 +25,10 @@ package Resource_Holders is
 
    function Create (Value : T) return Holder_Type;
    --  Create a new holder for Value
+
+   procedure Set_Present (Holder : in out Holder_Type);
+   --  Tag the value as being present in Holder. This is useful to use
+   --  Holder.Value as the out parameter.
 
    function Move (Holder : in out Holder_Type) return T;
    --  Return the value in Holder and erase the

@@ -22,6 +22,15 @@ package body Resource_Holders is
               Value => Value);
    end Create;
 
+   -----------------
+   -- Set_Present --
+   -----------------
+
+   procedure Set_Present (Holder : in out Holder_Type) is
+   begin
+      Holder.Value_Present := True;
+   end Set_Present;
+
    ----------
    -- Move --
    ----------
