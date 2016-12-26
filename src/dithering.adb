@@ -16,7 +16,7 @@ procedure Dithering is
    procedure Main;
    --  This runs the whole program
 
-   procedure Process_File (Handle : Any_File_Handle);
+   procedure Process_File (Read_Handle, Write_Handle : Any_File_Handle);
 
    ----------
    -- Main --
@@ -38,18 +38,30 @@ procedure Dithering is
       end if;
 
       declare
-         Filename : constant String := Argument (1);
-         Handle   : Any_File_Handle;
+         Read_Filename             : constant String := Argument (1);
+         Write_Filename            : constant String := Read_Filename & ".new";
+         Read_Handle, Write_Handle : Any_File_Handle;
       begin
-         if FS.Open (Filename, Read_Only, Handle) /= Status_Ok then
-            Put_Line ("Could not open " & Filename);
+         if FS.Open (Read_Filename, Read_Only, Read_Handle) /= Status_Ok then
+            Put_Line ("Could not open " & Read_Filename);
+            raise Exit_With_Failure;
+         end if;
+         if FS.Create_Node (Write_Filename, Regular_File) /= Status_Ok
+           or else FS.Open
+             (Write_Filename, Write_Only, Write_Handle) /= Status_Ok
+         then
+            Put_Line ("Could not open " & Write_Filename);
             raise Exit_With_Failure;
          end if;
 
-         Process_File (Handle);
+         Process_File (Read_Handle, Write_Handle);
 
-         if Handle.Close /= Status_Ok then
-            Put_Line ("Could not close " & Filename);
+         if Read_Handle.Close /= Status_Ok then
+            Put_Line ("Could not close " & Read_Filename);
+            raise Exit_With_Failure;
+         end if;
+         if Write_Handle.Close /= Status_Ok then
+            Put_Line ("Could not close " & Write_Filename);
             raise Exit_With_Failure;
          end if;
       end;
@@ -59,12 +71,11 @@ procedure Dithering is
    -- Process_File --
    ------------------
 
-   procedure Process_File (Handle : Any_File_Handle) is
-      BM : BMP.Bitmap_Allocation := BMP.Load (Handle.all);
-
-      pragma Unreferenced (BM);
+   procedure Process_File (Read_Handle, Write_Handle : Any_File_Handle) is
+      BM : BMP.Bitmap_Allocation := BMP.Load (Read_Handle.all);
    begin
-      null;
+      BMP.Save (Write_Handle.all, BM.Bitmap);
+      BMP.Destroy (BM);
    end Process_File;
 
 begin
