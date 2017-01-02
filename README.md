@@ -12,15 +12,15 @@ to provide a compatible interface.
 In order to build it, first make sure you download the git submodules:
 
 ```shell
-$ git submodules init
-$ git submodules update
+$ git submodule init
+$ git submodule update
 ```
 
 Then, with a GNAT compiler and [GPRbuild](https://github.com/AdaCore/gprbuild),
 run:
 
 ```shell
-$ gprbuild -Pdithering
+$ gprbuild -Pdithering -p
 ```
 
 You can then run the program to dither a BMP image:
