@@ -23,6 +23,7 @@ procedure Dithering is
 
    procedure Close (Handle : in out Any_File_Handle);
 
+   package FSD_Holders is new Resource_Holders (Native_FS_Driver_Ref, Destroy);
    package File_Handle_Holders is new Resource_Holders
      (Any_File_Handle, Close);
 
@@ -31,7 +32,9 @@ procedure Dithering is
    ----------
 
    procedure Main is
-      FS : Native_FS_Driver;
+      FS_Holder : constant FSD_Holders.Holder_Type :=
+         FSD_Holders.Create (new Native_FS_Driver);
+      FS : Native_FS_Driver renames FS_Holder.Value.all;
    begin
       if Argument_Count /= 1 then
          Put_Line ("Wrong number of arguments.");
