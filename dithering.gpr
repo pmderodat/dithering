@@ -1,5 +1,4 @@
-with "drivers/boards/native/config.gpr";
-with "drivers/boards/native.gpr";
+with "drivers/boards/native/native.gpr";
 
 project Dithering is
 
@@ -9,7 +8,7 @@ project Dithering is
 
     for Object_Dir use "obj";
 
-    package Compiler renames Config.Compiler;
-    package Builder renames Config.Builder;
+    package Compiler renames Native.Compiler;
+    package Builder renames Native.Builder;
 
 end Dithering;

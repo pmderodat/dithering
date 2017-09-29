@@ -20,25 +20,25 @@ package body BMP is
 
    function "+" (Pixel : RGB24_Pixel) return Bitmap_Color
    is (Alpha => 255,
-       Red   => Pixel.Red,
-       Green => Pixel.Green,
-       Blue  => Pixel.Blue);
+       Red   => UInt8 (Pixel.Red),
+       Green => UInt8 (Pixel.Green),
+       Blue  => UInt8 (Pixel.Blue));
 
    function "+" (Pixel : Bitmap_Color) return RGB24_Pixel
-   is (Blue  => Pixel.Blue,
-       Green => Pixel.Green,
-       Red   => Pixel.Red);
+   is (Blue  => Unsigned_8 (Pixel.Blue),
+       Green => Unsigned_8 (Pixel.Green),
+       Red   => Unsigned_8 (Pixel.Red));
 
    type RGB24_Array is array (Natural range <>) of RGB24_Pixel
      with Pack => True;
 
    procedure Free is new Ada.Unchecked_Deallocation
-     (Byte_Array, Byte_Array_Access);
+     (UInt8_Array, Byte_Array_Access);
 
    package Bitmap_Allocation_Holders is new Resource_Holders
      (Bitmap_Allocation, Destroy);
 
-   package Byte_Array_Allocation_Holders is new Resource_Holders
+   package UInt8_Array_Allocation_Holders is new Resource_Holders
      (Byte_Array_Access, Free);
 
    function Pad (Size, Step : Natural) return Natural is
@@ -64,12 +64,12 @@ package body BMP is
       Byte_Count  : constant Natural :=
         Bits_Per_Pixel (Mode) * Pixel_Count;
    begin
-      Result.Buffer := new Byte_Array (1 .. Byte_Count);
+      Result.Buffer := new UInt8_Array (1 .. Byte_Count);
 
       Result.Bitmap.Addr := Result.Buffer.all'Address;
-      Result.Bitmap.Width := Width;
-      Result.Bitmap.Height := Height;
-      Result.Bitmap.Color_Mode := Mode;
+      Result.Bitmap.Actual_Width := Width;
+      Result.Bitmap.Actual_Height := Height;
+      Result.Bitmap.Actual_Color_Mode := Mode;
 
       return Result;
    end Create;
@@ -81,12 +81,12 @@ package body BMP is
    function Load (File : in out File_Handle'Class) return Bitmap_Allocation is
       Result : Bitmap_Allocation_Holders.Holder_Type :=
         Bitmap_Allocation_Holders.Create ((Bitmap => <>, Buffer => null));
-      BM     : Bitmap_Buffer renames Result.Value.Bitmap;
+      BM     : Memory_Mapped_Bitmap_Buffer renames Result.Value.Bitmap;
 
       --  Buffers used to read headers from File
 
-      BMP_Hdr_Buffer : Byte_Array (1 .. Natural (BMP_Header_Byte_Size));
-      DIB_Hdr_Buffer : Byte_Array (1 .. Natural (DIB_Header_Byte_Size));
+      BMP_Hdr_Buffer : UInt8_Array (1 .. Natural (BMP_Header_Byte_Size));
+      DIB_Hdr_Buffer : UInt8_Array (1 .. Natural (DIB_Header_Byte_Size));
 
       --  Overlays to decode these headers
 
@@ -140,9 +140,9 @@ package body BMP is
          Width           : constant Natural := Natural (DIB_Hdr.Width);
          Padded_Row_Size : constant Natural := RGB24_Row_Size (Width);
 
-         Read_Buffer : constant Byte_Array_Allocation_Holders.Holder_Type :=
-           Byte_Array_Allocation_Holders.Create
-             (new Byte_Array (1 .. Padded_Row_Size));
+         Read_Buffer : constant UInt8_Array_Allocation_Holders.Holder_Type :=
+           UInt8_Array_Allocation_Holders.Create
+             (new UInt8_Array (1 .. Padded_Row_Size));
          Data        : RGB24_Array (1 .. Width)
            with Address => Read_Buffer.Value.all'Address;
       begin
@@ -156,7 +156,7 @@ package body BMP is
 
             for Cell_I in Data'Range loop
                BM.Set_Pixel
-                 (Cell_I - 1, Row_I - 1, +Data (Cell_I));
+                 ((Cell_I - 1, Row_I - 1), +Data (Cell_I));
             end loop;
          end loop;
       end;
@@ -174,9 +174,9 @@ package body BMP is
       --  file will appear.
 
       Padded_Row_Size : constant Natural := RGB24_Row_Size (BM.Width);
-      Write_Buffer    : constant Byte_Array_Allocation_Holders.Holder_Type :=
-        Byte_Array_Allocation_Holders.Create
-          (new Byte_Array (1 .. Padded_Row_Size));
+      Write_Buffer    : constant UInt8_Array_Allocation_Holders.Holder_Type :=
+        UInt8_Array_Allocation_Holders.Create
+          (new UInt8_Array (1 .. Padded_Row_Size));
       Data            : RGB24_Array (1 .. BM.Width)
         with Address => Write_Buffer.Value.all'Address;
 
@@ -184,7 +184,7 @@ package body BMP is
         BMP_Header_Byte_Size + DIB_Header_Byte_Size;
       Data_Size   : constant Natural :=
         Padded_Row_Size * BM.Height;
-      File_Size : constant Natural := Data_Offset + Data_Size;
+      File_Size   : constant Natural := Data_Offset + Data_Size;
    begin
 
       --  Write headers
@@ -212,10 +212,10 @@ package body BMP is
 
          --  Overlays to write the above headers to File
 
-         BMP_Hdr_Buffer : Byte_Array (1 .. Natural (BMP_Header_Byte_Size));
+         BMP_Hdr_Buffer : UInt8_Array (1 .. Natural (BMP_Header_Byte_Size));
          for BMP_Hdr_Buffer'Address use BMP_Hdr'Address;
 
-         DIB_Hdr_Buffer : Byte_Array (1 .. Natural (DIB_Header_Byte_Size));
+         DIB_Hdr_Buffer : UInt8_Array (1 .. Natural (DIB_Header_Byte_Size));
          for DIB_Hdr_Buffer'Address use DIB_Hdr'Address;
 
       begin
@@ -230,7 +230,7 @@ package body BMP is
 
       for Row_I in reverse 1 .. BM.Height loop
          for Cell_I in 1 .. BM.Width loop
-            Data (Cell_I) := +BM.Get_Pixel (Cell_I - 1, Row_I - 1);
+            Data (Cell_I) := +BM.Pixel ((Cell_I - 1, Row_I - 1));
          end loop;
          if File.Write (Write_Buffer.Value.all) /= Status_Ok then
             raise Write_Error;

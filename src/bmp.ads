@@ -1,8 +1,9 @@
 with Interfaces; use Interfaces;
 
-with HAL;            use HAL;
-with HAL.Bitmap;     use HAL.Bitmap;
-with HAL.Filesystem; use HAL.Filesystem;
+with HAL;                  use HAL;
+with HAL.Bitmap;           use HAL.Bitmap;
+with HAL.Filesystem;       use HAL.Filesystem;
+with Memory_Mapped_Bitmap; use Memory_Mapped_Bitmap;
 
 package BMP is
 
@@ -91,7 +92,7 @@ package BMP is
    --  Access type used to hold the dynamically allocated buffer in a bitmap
 
    type Bitmap_Allocation is record
-      Bitmap : Bitmap_Buffer;
+      Bitmap : Memory_Mapped_Bitmap_Buffer;
       --  Holder for an allocated bitmap
 
       Buffer : Byte_Array_Access;
@@ -115,6 +116,6 @@ package BMP is
 
 private
 
-   type Byte_Array_Access is access Byte_Array;
+   type Byte_Array_Access is access UInt8_Array;
 
 end BMP;

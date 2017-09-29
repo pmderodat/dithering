@@ -1,6 +1,9 @@
 with Ada.Unchecked_Deallocation;
 
-procedure Dither (Input, Output : HAL.Bitmap.Bitmap_Buffer) is
+procedure Dither
+  (Input  : HAL.Bitmap.Bitmap_Buffer'Class;
+   Output : in out HAL.Bitmap.Bitmap_Buffer'Class)
+is
 
    type Luminance_Array is
      array (Natural range <>, Natural range <>) of Integer;
@@ -31,7 +34,7 @@ begin
       for X in  Lum'Range (1) loop
          declare
             Input_Color : constant HAL.Bitmap.Bitmap_Color :=
-              Input.Get_Pixel (X, Y);
+              Input.Pixel ((X, Y));
          begin
             Lum (X, Y) := (Natural (Input_Color.Red) * 299
                            + Natural (Input_Color.Green) * 587
@@ -78,9 +81,9 @@ begin
       for X in  Lum'Range (1) loop
          declare
             L : constant Integer := Lum (X, Y);
-            V : constant HAL.Byte := HAL.Byte (if L < 128 then 0 else 255);
+            V : constant HAL.UInt8 := HAL.UInt8 (if L < 128 then 0 else 255);
          begin
-            Output.Set_Pixel (X, Y, (255, V, V, V));
+            Output.Set_Pixel ((X, Y), (255, V, V, V));
          end;
       end loop;
    end loop;
