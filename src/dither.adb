@@ -13,8 +13,8 @@ is
      (Luminance_Array, Luminance_Array_Access);
 
    Lum : Luminance_Array_Access :=
-     new Luminance_Array (0 .. Input.Width - 1,
-                          0 .. Input.Height - 1);
+     new Luminance_Array (0 .. Output.Width - 1,
+                          0 .. Output.Height - 1);
 
    type Error_Destination is record
       DX, DY : Integer;
@@ -34,7 +34,8 @@ begin
       for X in  Lum'Range (1) loop
          declare
             Input_Color : constant HAL.Bitmap.Bitmap_Color :=
-              Input.Pixel ((X, Y));
+              Input.Pixel ((X * Input.Width / Output.Width,
+                            Y * Input.Height / Output.Height));
          begin
             Lum (X, Y) := (Natural (Input_Color.Red) * 299
                            + Natural (Input_Color.Green) * 587
